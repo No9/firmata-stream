@@ -119,8 +119,7 @@ SYSEX_RESPONSE[QUERY_FIRMWARE] = function(board) {
     }
 	
     board.firmware.name = new Buffer(firmwareBuf).toString('utf8', 0, firmwareBuf.length);
-	console.log("got response QUERY_FIRMWARE");
-    board.emit('queryfirmware');
+	board.emit('ready');
 };
 
 /**
@@ -259,7 +258,7 @@ exports.layout = function(){
 			board.writable = true;
 			
 			board.write = function (data) {
-			    console.log("Writing to board : " + data);
+			    //console.log("Writing to board : " + data);
 			    //console.log("Writing : " + data);
 				
 			if (!board.versionReceived && data[0] !== REPORT_VERSION) {
