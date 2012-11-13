@@ -17,7 +17,7 @@ Open the StandardFirmata.ino and push it to your ardiuno board.
 ## Run 
 ```
 $ cd examples
-$ node versiontest.js
+$ node ledtest.js
 ```
 
 
