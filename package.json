@@ -1,0 +1,29 @@
+{
+  "name": "firmata-stream",
+  "description": "Talk to an Arduino using the Firmata protocol over streams",
+  "tags": [
+    "Arduino",
+    "Firmata", 
+    "streams"
+  ],
+  "version": "0.0.1",
+  "author": {
+    "name": "Anton Whalley",
+    "email": "anton.whalley@vodafone.ie"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/No9/firmata-stream.git"
+  },
+  "bugs": {
+    "url": "https://github.com/No9/firmata-stream/issues"
+  },
+  "dependencies": {
+    "serialport": "1.0.*"
+  },
+  "devDependencies" : {
+    },
+    "scripts" : {
+        "test" : "node test/host.js"
+  }
+}
