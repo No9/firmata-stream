@@ -14,6 +14,7 @@ var SerialPort = require('serialport').SerialPort,
             });
 			
 			stream.write = function (buf) {
+			    console.log("Writing to serial Port : " + buf);
 			    sp.write(buf);
 			};
 			
@@ -21,7 +22,7 @@ var SerialPort = require('serialport').SerialPort,
 				if (arguments.length) stream.write(buf);
 
 				stream.writable = false;
-				console.log(bytes + ' bytes written');
+				console.log(bytes + ' bytes written I AM N0T LISTENING TO YOU ANY MORE');
 			};
 
 			stream.destroy = function () {
@@ -30,6 +31,7 @@ var SerialPort = require('serialport').SerialPort,
 			
 			
 			sp.on('data', function(data) {
+				console.log("Reading from serial Port");
 				stream.emit('data', data);
 			});
 			

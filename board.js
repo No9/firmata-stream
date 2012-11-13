@@ -39,11 +39,12 @@ var MIDI_RESPONSE = {};
  */
 
 MIDI_RESPONSE[REPORT_VERSION] = function(board) {
+    console.log("got response REPORT_VERSION");
     board.version.major = board.currentBuffer[1];
     board.version.minor = board.currentBuffer[2];
     for (var i = 0; i < 16; i++) {
-        board.sp.write([REPORT_DIGITAL | i, 1]);
-        board.sp.write([REPORT_ANALOG | i, 1]);
+        board.write([REPORT_DIGITAL | i, 1]);
+        board.write([REPORT_ANALOG | i, 1]);
     }
     board.emit('reportversion');
 };
@@ -55,7 +56,8 @@ MIDI_RESPONSE[REPORT_VERSION] = function(board) {
  */
 
 MIDI_RESPONSE[ANALOG_MESSAGE] = function(board) {
-    var value = board.currentBuffer[1] | (board.currentBuffer[2] << 7);
+    console.log("got response analog");
+	var value = board.currentBuffer[1] | (board.currentBuffer[2] << 7);
     var port = board.currentBuffer[0] & 0x0F;
     if (board.pins[board.analogPins[port]]) {
         board.pins[board.analogPins[port]].value = value;
@@ -74,6 +76,7 @@ MIDI_RESPONSE[ANALOG_MESSAGE] = function(board) {
  */
 
 MIDI_RESPONSE[DIGITAL_MESSAGE] = function(board) {
+    console.log("got response digital");
     var port = (board.currentBuffer[0] & 0x0F);
     var portValue = board.currentBuffer[1] | (board.currentBuffer[2] << 7);
     for (var i = 0; i < 8; i++) {
@@ -105,6 +108,7 @@ var SYSEX_RESPONSE = {};
  */
 
 SYSEX_RESPONSE[QUERY_FIRMWARE] = function(board) {
+    console.log("got response QUERY_FIRMWARE");
     var firmwareBuf = [];
     board.firmware.version = {};
     board.firmware.version.major = board.currentBuffer[2];
@@ -113,9 +117,9 @@ SYSEX_RESPONSE[QUERY_FIRMWARE] = function(board) {
         firmwareBuf.push((board.currentBuffer[i] & 0x7F) | ((board.currentBuffer[i + 1] & 0x7F) << 7));
 
     }
-
-
+	
     board.firmware.name = new Buffer(firmwareBuf).toString('utf8', 0, firmwareBuf.length);
+	console.log("got response QUERY_FIRMWARE");
     board.emit('queryfirmware');
 };
 
@@ -126,7 +130,8 @@ SYSEX_RESPONSE[QUERY_FIRMWARE] = function(board) {
  */
 
 SYSEX_RESPONSE[CAPABILITY_RESPONSE] = function(board) {
-    var supportedModes = 0;
+    console.log("got response CAPABILITY_RESPONSE");
+	var supportedModes = 0;
     var modesArray;
     for (var i = 2, n = 0; i < board.currentBuffer.length - 1; i++) {
         if (board.currentBuffer[i] == 127) {
@@ -160,7 +165,8 @@ SYSEX_RESPONSE[CAPABILITY_RESPONSE] = function(board) {
  */
 
 SYSEX_RESPONSE[PIN_STATE_RESPONSE] = function(board) {
-    var pin = board.currentBuffer[2];
+    console.log("got response PIN_STATE_RESPONSE");
+	var pin = board.currentBuffer[2];
     board.pins[pin].mode = board.currentBuffer[3];
     board.pins[pin].value = board.currentBuffer[4];
     if (board.currentBuffer.length > 6) {
@@ -179,7 +185,9 @@ SYSEX_RESPONSE[PIN_STATE_RESPONSE] = function(board) {
  */
 
 SYSEX_RESPONSE[ANALOG_MAPPING_RESPONSE] = function(board) {
-    var pin = 0;
+    console.log("got response ANALOG_MAPPING_RESPONSE");
+	
+	var pin = 0;
     var currentValue;
     for (var i = 2; i < board.currentBuffer.length - 1; i++) {
         currentValue = board.currentBuffer[i];
@@ -200,7 +208,8 @@ SYSEX_RESPONSE[ANALOG_MAPPING_RESPONSE] = function(board) {
  */
 
 SYSEX_RESPONSE[I2C_REPLY] = function(board) {
-    var replyBuffer = [];
+    console.log("got response I2C_REPLY");
+	var replyBuffer = [];
     var slaveAddress = (board.currentBuffer[2] & 0x7F) | ((board.currentBuffer[3] & 0x7F) << 7);
     var register = (board.currentBuffer[4] & 0x7F) | ((board.currentBuffer[5] & 0x7F) << 7);
     for (var i = 6, length = board.currentBuffer.length - 1; i < length; i += 2) {
@@ -216,47 +225,50 @@ SYSEX_RESPONSE[I2C_REPLY] = function(board) {
  */
 
 SYSEX_RESPONSE[STRING_DATA] = function(board) {
-    board.emit('string',new Buffer(board.currentBuffer.slice(2, -1)).toString('utf8'));
+    console.log("got response STRING_DATA");
+	board.emit('string',new Buffer(board.currentBuffer.slice(2, -1)).toString('utf8'));
 };
 
 exports.layout = function(){
-		 var board = this;
-        this.MODES = {
+		var board = new Stream();
+		//var board = this;
+        board.MODES = {
             INPUT: 0x00,
             OUTPUT: 0x01,
             ANALOG: 0x02,
             PWM: 0x03,
             SERVO: 0x04
         };
-        this.I2C_MODES = {
+        board.I2C_MODES = {
             WRITE: 0x00,
             READ: 1,
             CONTINUOUS_READ: 2,
             STOP_READING: 3
         };
-        this.HIGH = 1;
-        this.LOW = 0;
-        this.pins = [];
-        this.analogPins = [];
-        this.version = {};
-        this.firmware = {};
-        this.currentBuffer = [];
-        this.versionReceived = false;
+        board.HIGH = 1;
+        board.LOW = 0;
+        board.pins = [];
+        board.analogPins = [];
+        board.version = {};
+        board.firmware = {};
+        board.currentBuffer = [];
+        board.versionReceived = false;
 		
-		var stream = new Stream();
-			stream.readable = true;
-			stream.writable = true;
+		
+			board.readable = true;
+			board.writable = true;
 			
-			stream.write = function (data) {
+			board.write = function (data) {
+			    console.log("Writing to board : " + data);
 			    //console.log("Writing : " + data);
-			    //console.log("Writing : " + data);
+				
 			if (!board.versionReceived && data[0] !== REPORT_VERSION) {
 				console.log("!board.versionReceived && data[0] !== REPORT_VERSION");
                 return;
             } else {
                 board.versionReceived = true;
             }
-
+			
             //we dont want to push 0 as the first byte on our buffer
             if ((board.currentBuffer.length === 0 && data[0] !== 0 || board.currentBuffer.length)) {
                 board.currentBuffer.push(data[0]);
@@ -267,37 +279,41 @@ exports.layout = function(){
             var cmd;
             //if the first byte is START_SYSEX and last byte is END_SYSEX we have a SYSEX command.
             if (board.currentBuffer[0] == START_SYSEX && board.currentBuffer[board.currentBuffer.length - 1] == END_SYSEX) {
+			    console.log("We have a sysex");
                 cmdFunc = SYSEX_RESPONSE[board.currentBuffer[1]];
                 //if the first byte is not a START_SYSEX and we have 3 bytes we might have a MIDI Command
             } else if (board.currentBuffer.length == 3 && board.currentBuffer[0] != START_SYSEX) {
                 //commands under 0xF0 we have a multi byte command
                 if (board.currentBuffer[0] < 240) {
-				   
+					console.log("multi byte command");
                     cmd = board.currentBuffer[0] & 0xF0;
                 } else {
+				    console.log("byte command");
                     cmd = board.currentBuffer[0];
                 }
                 cmdFunc = MIDI_RESPONSE[cmd];
             }
             //if a function is found we will call it
             if (cmdFunc) {
+			     console.log("calling command");
+                    
                 //call function with board object
                 cmdFunc(board);
                 //reset currentBuffer so we can receive the next command
                 board.currentBuffer = [];
             }
 			};
+			
+			board.end = function (buf) {
+				if (arguments.length) board.write(buf);
 
-			stream.end = function (buf) {
-				if (arguments.length) stream.write(buf);
-
-				stream.writable = false;
+				board.writable = false;
 				console.log(bytes + ' bytes written');
 			};
 
-			stream.destroy = function () {
-				stream.writable = false;
+			board.destroy = function () {
+				board.writable = false;
 			};
-		return stream;
+		return board;
 		}
 			
