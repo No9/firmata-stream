@@ -2,6 +2,9 @@ Stream = require('stream').Stream;
 /**
  * constants
  */
+Buffer.prototype.toByteArray = function () {
+  return Array.prototype.slice.call(this, 0)
+}
 
 var PIN_MODE = 0xF4,
     REPORT_DIGITAL = 0xD0,
@@ -42,10 +45,7 @@ MIDI_RESPONSE[REPORT_VERSION] = function(board) {
     console.log("got response REPORT_VERSION");
     board.version.major = board.currentBuffer[1];
     board.version.minor = board.currentBuffer[2];
-    for (var i = 0; i < 16; i++) {
-        board.write([REPORT_DIGITAL | i, 1]);
-        board.write([REPORT_ANALOG | i, 1]);
-    }
+    console.log(board.version);
     board.emit('reportversion');
 };
 
@@ -228,16 +228,19 @@ SYSEX_RESPONSE[STRING_DATA] = function(board) {
 	board.emit('string',new Buffer(board.currentBuffer.slice(2, -1)).toString('utf8'));
 };
 
+
+
 exports.layout = function(){
 		var board = new Stream();
-		//var board = this;
-        board.MODES = {
+		
+		board.MODES = {
             INPUT: 0x00,
             OUTPUT: 0x01,
             ANALOG: 0x02,
             PWM: 0x03,
             SERVO: 0x04
         };
+		
         board.I2C_MODES = {
             WRITE: 0x00,
             READ: 1,
@@ -252,14 +255,19 @@ exports.layout = function(){
         board.firmware = {};
         board.currentBuffer = [];
         board.versionReceived = false;
-		
+		board.reading = true;
 		
 			board.readable = true;
 			board.writable = true;
 			
 			board.write = function (data) {
-			    //console.log("Writing to board : " + data);
-			    //console.log("Writing : " + data);
+			
+				if(Buffer.isBuffer(data)){
+					board.currentBuffer = board.currentBuffer.concat(data.toByteArray());
+			    }
+				
+				console.log("data event : " + data);
+			    console.log(data);
 				
 			if (!board.versionReceived && data[0] !== REPORT_VERSION) {
 				console.log("!board.versionReceived && data[0] !== REPORT_VERSION");
@@ -268,11 +276,15 @@ exports.layout = function(){
                 board.versionReceived = true;
             }
 			
-            //we dont want to push 0 as the first byte on our buffer
-            if ((board.currentBuffer.length === 0 && data[0] !== 0 || board.currentBuffer.length)) {
-                board.currentBuffer.push(data[0]);
-            }
+			console.log("board.currentBuffer.length : " + board.currentBuffer.length);
 			
+			if(!Buffer.isBuffer(data)){
+            //we dont want to push 0 as the first byte on our buffer
+				if ((board.currentBuffer.length === 0 && data[0] !== 0 || board.currentBuffer.length)) {
+					board.currentBuffer.push(data[0]);
+				}
+			}
+			console.log("board.currentBuffer.length : " + board.currentBuffer.length);
             //a MIDI or SYSEX command function we are going to call
             var cmdFunc;
             var cmd;
@@ -280,9 +292,10 @@ exports.layout = function(){
             if (board.currentBuffer[0] == START_SYSEX && board.currentBuffer[board.currentBuffer.length - 1] == END_SYSEX) {
 			    console.log("We have a sysex");
                 cmdFunc = SYSEX_RESPONSE[board.currentBuffer[1]];
-                //if the first byte is not a START_SYSEX and we have 3 bytes we might have a MIDI Command
+				//if the first byte is not a START_SYSEX and we have 3 bytes we might have a MIDI Command
             } else if (board.currentBuffer.length == 3 && board.currentBuffer[0] != START_SYSEX) {
                 //commands under 0xF0 we have a multi byte command
+				console.log("board.currentBuffer.length == 3");
                 if (board.currentBuffer[0] < 240) {
 					console.log("multi byte command");
                     cmd = board.currentBuffer[0] & 0xF0;
@@ -293,14 +306,15 @@ exports.layout = function(){
                 cmdFunc = MIDI_RESPONSE[cmd];
             }
             //if a function is found we will call it
-            if (cmdFunc) {
-			     console.log("calling command");
-                    
-                //call function with board object
-                cmdFunc(board);
-                //reset currentBuffer so we can receive the next command
-                board.currentBuffer = [];
-            }
+				if (cmdFunc) {
+					 console.log("calling command");
+						
+					//call function with board object
+					cmdFunc(board);
+					//reset currentBuffer so we can receive the next command
+					console.log("Emptying Board");
+					board.currentBuffer = [];
+				}
 			};
 			
 			board.end = function (buf) {

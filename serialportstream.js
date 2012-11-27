@@ -16,8 +16,9 @@ var SerialPort = require('serialport').SerialPort,
 			var queue = [];
  
 			stream.write = function (buf) {
-				   queue.push(buf);
-				   sp.write(buf);
+			        console.log("sending:" + buf)
+					queue.push(buf);
+					sp.write(buf);
 			};
 			
 			stream.end = function (buf) {
@@ -33,7 +34,8 @@ var SerialPort = require('serialport').SerialPort,
 			
 			
 			sp.on('data', function(data) {
-				//console.log("Reading from serial Port");
+			    console.log("Received");
+				console.log(data);
 				stream.emit('data', data);
 				queue.shift();
 				if(queue.length > 0){

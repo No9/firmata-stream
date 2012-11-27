@@ -8,14 +8,13 @@
 			stream.readable = true;
 			stream.writable = true;
 			
-			var sp = net.connect( 4444, '127.0.0.1');
+			var sp = net.connect( 4444, '192.168.1.33');
 			
 			var queue = [];
  
 			stream.write = function (buf) {
 				   var buffer = new Buffer(buf);
 				   queue.push(buffer);
-				   console.log(buf);
 				   sp.write(buffer);
 			};
 			
@@ -35,6 +34,7 @@
 				//console.log("Reading from serial Port");
 				stream.emit('data', data);
 				queue.shift();
+				
 				if(queue.length > 0){
 					console.log("SHIFTING");
 					sp.write(queue.shift());
