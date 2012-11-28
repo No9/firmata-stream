@@ -34,9 +34,8 @@ var SerialPort = require('serialport').SerialPort,
 			
 			
 			sp.on('data', function(data) {
-			    console.log("Received");
-				console.log(data);
 				stream.emit('data', data);
+				console.log("recieving:" + data)
 				queue.shift();
 				if(queue.length > 0){
 					console.log("SHIFTING");

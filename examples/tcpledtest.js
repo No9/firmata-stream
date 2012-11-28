@@ -12,7 +12,7 @@ var pin = require('../lib/pin');
 var serialport = require('../tcpstream');
 var board = require('../boardstream');
 
-var sp = serialport.datastream();
+var sp = serialport.datastream(4444,'192.168.1.36');
 var board = board.layout(); 
 sp.pipe(board).pipe(sp);
 sp.write(version);

@@ -3,16 +3,17 @@
     events = require('events'), 
 	Stream = require('stream').Stream;
 	
-	exports.datastream = function () {
+	exports.datastream = function (port, ipaddress) {
 			var stream = new Stream();
 			stream.readable = true;
 			stream.writable = true;
 			
-			var sp = net.connect( 4444, '192.168.1.33');
+			var sp = net.connect( port, ipaddress);
 			
 			var queue = [];
  
 			stream.write = function (buf) {
+				   console.log("sending:" + buf)
 				   var buffer = new Buffer(buf);
 				   queue.push(buffer);
 				   sp.write(buffer);
@@ -31,8 +32,8 @@
 			
 			
 			sp.on('data', function(data) {
-				//console.log("Reading from serial Port");
 				stream.emit('data', data);
+				console.log("recieving:" + data)
 				queue.shift();
 				
 				if(queue.length > 0){
