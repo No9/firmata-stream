@@ -19,7 +19,7 @@
     "url": "https://github.com/No9/firmata-stream/issues"
   },
   "dependencies": {
-    "serialport": "1.0.*"
+	"tcp-usb-stream" : "0.0.1"
   },
   "devDependencies" : {
     },

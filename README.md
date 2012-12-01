@@ -19,5 +19,5 @@ Open the StandardFirmata.ino and push it to your ardiuno board.
 $ cd examples
 $ node ledtest.js
 ```
-
+Other examples will not work yet.
 

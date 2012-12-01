@@ -1,7 +1,6 @@
 var version = require('../lib/version').REPORT_VERSION;
 var pin = require('../lib/pin');
-//var serialport = require('../tcpstream');
-var serialport = require('../serialportstream');
+var serialport = require('../');
 var board = require('../boardstream');
 
 var HIGH = 1;
@@ -20,7 +19,6 @@ var SPEEDPIN2 = 11;
 
 
 var sp = serialport.datastream('COM6');
-//var sp = serialport.datastream(4444,'192.168.1.36');
 var board = board.layout(); 
 var OUTPUT = board.MODES.OUTPUT;
 var ANALOG = board.MODES.ANALOG;

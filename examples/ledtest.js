@@ -8,8 +8,8 @@ var ANALOG_MAPPING_RESPONSE = 0x6A;
 	
 var version = require('../lib/version').REPORT_VERSION;
 var pin = require('../lib/pin');
-var serialport = require('../serialportstream');
-var board = require('../boardstream');
+var serialport = require('tcp-usb-stream');
+var board = require('../');
 
 var sp = serialport.datastream('COM6');
 var board = board.layout(); 
